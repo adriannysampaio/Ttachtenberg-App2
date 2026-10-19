@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Método de Trachtenberg - UFC</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-base: #1e3557;
+      --bg-gradient: radial-gradient(circle at 50% 30%, #26436e 0%, #1e3557 58%, #162842 100%);
+      --ufc-gold: #e5aa24;
+      --ufc-gold-dark: #c48d12;
+      --ufc-gold-hover: #f1b735;
+      --text-white: #ffffff;
+      --text-soft: #f4f8fc;
+      --text-muted: #9cb9d8;
+      
+      --font-serif: 'Playfair Display', "Georgia", serif;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-title: 'Cinzel', serif;
+
+      --abacus-frame: #102136;
+      --abacus-beam: #0a1524;
+      --abacus-rod: #9bb2ce;
+      --abacus-bead: #e5aa24;
+      --abacus-bead-shadow: rgba(0, 0, 0, 0.45);
+      --abacus-dot: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+    body {
+      background: var(--bg-base) var(--bg-gradient) fixed;
+      color: var(--text-white);
+      font-family: var(--font-sans);
+      display: flex; justify-content: center;
+      min-height: 100vh; padding: 20px 16px;
+    }
+
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* CABEÇALHO */
+    header { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; padding-top: 6px; }
+    h1.main-title { font-family: "Georgia", serif; font-size: 2.1rem; font-weight: 400; margin-top: 4px; line-height: 1.15; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    .subtitle-ufc { font-style: italic; color: #bfd4eb; font-size: 0.85rem; margin-top: 6px; }
+
+    .help-btn {
+      position: absolute; top: 0; right: 0;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35);
+      color: var(--text-white); border-radius: 50%; width: 30px; height: 30px;
+      font-size: 0.9rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    }
+    .help-btn:hover { background: rgba(255,255,255,0.25); }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.65); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: var(--bg-base); border: 2px solid var(--ufc-gold); border-radius: 16px;
+      max-width: 400px; width: 100%; padding: 22px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 14px;
+    }
+    .modal-title { font-family: var(--font-title); font-size: 1.25rem; color: var(--ufc-gold); font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 8px; }
+    .modal-body { font-size: 0.9rem; line-height: 1.5; color: var(--text-soft); }
+
+    /* SELETOR MODO */
+    .input-mode-selector { background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 6px; display: flex; gap: 6px; margin-top: 4px; }
+    .input-mode-btn {
+      flex: 1; background: transparent; border: none; color: var(--text-muted); padding: 8px 10px; border-radius: 8px;
+      font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; font-family: inherit;
+    }
+    .input-mode-btn.active { background: var(--ufc-gold); color: #122238; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+    /* GRID & CARDS */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card {
+      background: var(--ufc-gold); border: 1px solid var(--ufc-gold-dark); border-radius: 14px; padding: 16px 14px;
+      cursor: pointer; color: var(--text-white); box-shadow: 0 6px 14px rgba(0,0,0,0.35); transition: 0.15s;
+    }
+    .card:hover { transform: translateY(-3px); background: var(--ufc-gold-hover); box-shadow: 0 8px 18px rgba(0,0,0,0.45); }
+    .card .title { font-family: var(--font-serif); font-size: 1.7rem; font-weight: 700; margin-bottom: 4px; text-shadow: 0 1px 3px rgba(0,0,0,0.4); font-variant-numeric: tabular-nums; }
+    .card .desc { font-size: 0.8rem; font-weight: 600; color: var(--text-soft); line-height: 1.3; text-shadow: 0 1px 2px rgba(0,0,0,0.35); }
+
+    /* TELAS */
+    .view { display: none; flex-direction: column; gap: 16px; }
+    .view.active { display: flex; }
+    .view-top-bar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.15); gap: 8px; }
+    .view-top-title { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 700; color: var(--ufc-gold); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nav-actions { display: flex; gap: 6px; align-items: center; }
+
+    /* TUTORIAL & REGRAS */
+    .tutorial-content { background: rgba(255,255,255,0.08); border-left: 5px solid var(--ufc-gold); border-radius: 0 12px 12px 0; padding: 18px 16px; backdrop-filter: blur(4px); display: flex; flex-direction: column; gap: 14px; max-height: 56vh; overflow-y: auto; }
+    .tutorial-step { font-size: 0.88rem; line-height: 1.5; color: #e9f2fb; }
+    .tutorial-step strong { color: var(--ufc-gold); font-family: var(--font-title); font-size: 0.95rem; display: block; margin-bottom: 4px; }
+    .tutorial-example { background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px; margin-top: 6px; font-family: monospace; font-size: 0.85rem; color: #ffd67a; line-height: 1.4; }
+
+    .rule-card { background: rgba(255,255,255,0.09); border-left: 5px solid var(--ufc-gold); border-radius: 0 10px 10px 0; padding: 12px 14px; backdrop-filter: blur(4px); }
+    .rule-title { color: var(--ufc-gold); font-size: 1.15rem; font-weight: bold; margin-bottom: 3px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); font-variant-numeric: tabular-nums; }
+    .rule-text { color: var(--text-white); font-size: 0.88rem; line-height: 1.4; }
+    .rule-zero-tip { margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.2); font-size: 0.78rem; line-height: 1.35; color: #d1e2f3; }
+    .rule-zero-tip strong { color: var(--ufc-gold); }
+
+    .status-bar { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; color: #ffd67a; }
+
+    /* PRÁTICA E INPUTS */
+    .exercise-box { text-align: center; padding: 20px 14px; background: var(--ufc-gold); border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .expression { display: flex; align-items: center; justify-content: center; gap: 12px; font-family: var(--font-serif); font-size: 2.6rem; font-weight: 700; color: var(--text-white); margin-bottom: 6px; text-shadow: 0 2px 6px rgba(0,0,0,0.4); font-variant-numeric: tabular-nums; line-height: 1; }
+    .expression .op { font-size: 1.9rem; opacity: 0.9; transform: translateY(-2px); }
+
+    .digit-blocks-container { display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 6px; }
+    .digit-blocks-row { display: flex; flex-direction: row-reverse; gap: 6px; justify-content: center; max-width: 100%; overflow-x: auto; padding: 4px; }
+    .digit-box-unit { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .digit-box-unit label { font-size: 0.68rem; font-weight: 700; color: #122238; text-transform: uppercase; line-height: 1; }
+    .digit-box-unit label sup { font-size: 0.55rem; }
+    input[type="text"].digit-box-input {
+      background: #ffffff; border: 2px solid var(--ufc-gold-dark); color: var(--bg-base); font-size: 1.3rem; font-weight: bold; font-family: var(--font-sans);
+      height: 46px; width: 40px; border-radius: 8px; text-align: center; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); transition: 0.15s;
+    }
+    input[type="text"].digit-box-input:focus { border-color: #ffffff; box-shadow: 0 0 6px rgba(255,255,255,0.8); background: #fffef0; }
+
+    /* =======================================================
+       ÁBACO OTIMIZADO E ACESSÍVEL (TOQUE PERFEITO NA HASTE)
+       ======================================================= */
+    .abacus-container { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 450px; margin: 4px 0 10px 0; }
+    
+    .abacus-frame { 
+      background: var(--abacus-frame); border: 4px solid #08111d; border-radius: 10px; 
+      padding: 6px 4px 44px 4px; /* Mais espaço inferior para números grandes */
+      display: flex; justify-content: space-around; position: relative; 
+      box-shadow: inset 0 3px 6px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.3); 
+      width: 100%; touch-action: none; margin-top: 8px; 
+    }
+    
+    .abacus-column { display: flex; flex-direction: column; align-items: center; width: 44px; height: 190px; position: relative; cursor: pointer; }
+    .abacus-rod-line { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--abacus-rod); z-index: 1; border-radius: 1px; }
+    
+    /* A Haste Central (Beam) */
+    .abacus-beam-bar { position: absolute; top: 52px; left: 0; right: 0; height: 10px; background: var(--abacus-beam); border-top: 1px solid #1f3757; border-bottom: 1px solid #000; z-index: 2; }
+    .abacus-dot { position: absolute; top: 54px; width: 6px; height: 6px; background: var(--abacus-dot); border-radius: 50%; z-index: 3; }
+    
+    /* Decks (Divisões superior e inferior) */
+    .abacus-deck-upper { height: 52px; width: 100%; display: flex; justify-content: center; position: relative; z-index: 4; }
+    .abacus-deck-lower { margin-top: 10px; height: 127px; width: 100%; display: flex; flex-direction: column; justify-content: flex-end; position: relative; z-index: 4; gap: 1px; }
+    
+    /* Contas Grandes (Acessibilidade) */
+    .soroban-bead {
+      width: 40px; height: 24px; background: linear-gradient(180deg, #fce282 0%, var(--abacus-bead) 50%, var(--ufc-gold-dark) 100%);
+      border-radius: 50% / 100%; box-shadow: inset 0 2px 2px rgba(255,255,255,0.7), inset 0 -2px 3px rgba(0,0,0,0.5), 0 2px 4px var(--abacus-bead-shadow);
+      border: 1px solid #9c6e0a; transition: transform 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.12s, border-color 0.12s;
+      cursor: grab; touch-action: none;
+    }
+    .soroban-bead.dragging { cursor: grabbing; transition: none; }
+    
+    /* MATEMÁTICA EXATA DO DESLIZAMENTO (28px exatos para tocar a haste) */
+    .abacus-deck-upper .soroban-bead { transform: translateY(0); }
+    .abacus-deck-upper .soroban-bead.active { 
+      transform: translateY(28px); border-color: #ffffff; 
+      box-shadow: inset 0 2px 3px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(0,0,0,0.4), 0 0 6px rgba(255,255,255,0.6); 
+    }
+    
+    .abacus-deck-lower .soroban-bead { transform: translateY(0); }
+    .abacus-deck-lower .soroban-bead.active { 
+      transform: translateY(-28px); border-color: #ffffff; 
+      box-shadow: inset 0 2px 3px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(0,0,0,0.4), 0 0 6px rgba(255,255,255,0.6); 
+    }
+
+    /* Números de Resultado de Alto Contraste na Base */
+    .abacus-col-val {
+      position: absolute; bottom: -38px; width: 100%; text-align: center;
+      color: #ffffff; font-family: var(--font-sans); font-weight: bold; font-size: 1.6rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+
+    /* Botão Reset Maior */
+    .abacus-reset-btn {
+      position: absolute; top: -16px; left: -16px; background: #08111d; color: var(--ufc-gold);
+      border: 2px solid var(--ufc-gold); border-radius: 50%; width: 36px; height: 36px;
+      font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6); transition: 0.15s; font-family: inherit; font-weight: bold;
+    }
+    .abacus-reset-btn:hover { background: var(--ufc-gold); color: #08111d; transform: scale(1.1); }
+
+    /* BOTÕES GERAIS */
+    .btn { background: var(--bg-base); color: var(--text-white); border: none; border-radius: 10px; padding: 0 20px; height: 48px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; font-size: 0.92rem; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.15s; font-family: inherit; }
+    .btn:hover { background: #26436e; transform: translateY(-1px); }
+    .btn-secondary { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35); height: auto; padding: 12px 16px; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+    .btn-gold { background: var(--ufc-gold); color: var(--text-white); border: 1px solid var(--ufc-gold-dark); text-shadow: 0 1px 2px rgba(0,0,0,0.35); height: auto; padding: 12px 16px; }
+    .btn-gold:hover { background: var(--ufc-gold-hover); }
+
+    .feedback { font-size: 1.05rem; margin-top: 4px; min-height: 26px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.35); }
+    .feedback.correct { color: #ffffff; }
+    .feedback.incorrect { color: #ffebee; }
+
+    .result-card { background: var(--ufc-gold); border-radius: 16px; padding: 24px 16px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 12px; }
+    .result-title { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 700; color: var(--text-white); }
+    .result-stats { font-size: 1.1rem; color: var(--text-soft); line-height: 1.6; }
+
+    footer { margin-top: 14px; text-align: center; color: var(--text-muted); padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    footer .ufc-name { font-family: var(--font-title); font-size: 0.88rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; opacity: 0.95; }
+    footer .ufc-link { font-size: 0.76rem; color: var(--text-muted); opacity: 0.85; letter-spacing: 0.3px; text-decoration: none; transition: 0.2s; }
+    footer .ufc-link:hover { color: var(--ufc-gold); opacity: 1; text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal-card">
+      <div class="modal-title">Sobre o Método</div>
+      <div class="modal-body">
+        O <strong>Método Trachtenberg</strong> é um sistema de cálculo mental rápido desenvolvido pelo engenheiro russo <strong>Jakow Trachtenberg</strong> durante a Segunda Guerra Mundial, em um campo de concentração, para manter sua mente lúcida.
+      </div>
+      <button class="btn btn-gold" style="height: 40px; width: 100%;" onclick="closeHistoryModal()">Entendido</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- 1. TELA PRINCIPAL -->
+    <div id="homeView" class="view active">
+      <header>
+        <button class="help-btn" onclick="openHistoryModal()">?</button>
+        <h1 class="main-title">Método de Trachtenberg</h1>
+        <p class="subtitle-ufc">Aprenda a regra e resolva mentalmente</p>
+      </header>
+
+      <div class="grid">
+        <div class="card" onclick="openModeMenu(11, 'Adicione o dígito ao seu vizinho à direita.')"><div class="title">&times; 11</div><div class="desc">Dígito + vizinho</div></div>
+        <div class="card" onclick="openModeMenu(12, 'Dobre cada dígito e adicione o vizinho à direita.')"><div class="title">&times; 12</div><div class="desc">Dobro + vizinho</div></div>
+        <div class="card" onclick="openModeMenu(6, 'Some metade do vizinho ao dígito (+5 se o dígito for ímpar).')"><div class="title">&times; 6</div><div class="desc">Dígito + metade vizinho</div></div>
+        <div class="card" onclick="openModeMenu(7, 'Dobre o dígito + metade do vizinho (+5 se for ímpar).')"><div class="title">&times; 7</div><div class="desc">Dobro + metade vizinho</div></div>
+        <div class="card" onclick="openModeMenu(5, 'Pegue a metade do vizinho (+5 se o dígito for ímpar).')"><div class="title">&times; 5</div><div class="desc">Só metade do vizinho</div></div>
+        <div class="card" onclick="openModeMenu(9, 'Subtraia o último de 10 e os outros de 9, somando o vizinho diminuído de 1.')"><div class="title">&times; 9</div><div class="desc">Complemento total + vizinho</div></div>
+        <div class="card" onclick="openModeMenu(8, 'Subtraia de 9/10, dobre o resultado e some o vizinho.')"><div class="title">&times; 8</div><div class="desc">Comp. &times; 2 + vizinho</div></div>
+        <div class="card" onclick="openModeMenu(4, 'Subtraia de 9/10 + metade do vizinho (+5 se for ímpar).')"><div class="title">&times; 4</div><div class="desc">Comp. + metade vizinho</div></div>
+        <div class="card" onclick="openModeMenu(3, 'Subtraia de 9/10, dobre + metade do vizinho (+5 se for ímpar).')"><div class="title">&times; 3</div><div class="desc">Comp. &times; 2 + metade</div></div>
+        <div class="card" onclick="openModeMenu(2, 'Dobre cada dígito simples da direita para a esquerda.')"><div class="title">&times; 2</div><div class="desc">Dobro simples</div></div>
+        <div class="card" onclick="openModeMenu('general', 'Aplica pares de chaves produto-unidade e produto-dezena da direita para a esquerda.')"><div class="title">Método Geral</div><div class="desc">Para quaisquer números</div></div>
+        <div class="card" onclick="openModeMenu('mixed', 'Modo variado com todas as regras misturadas!')"><div class="title">Modo Misto</div><div class="desc">Uma regra aleatória</div></div>
+      </div>
+      
+      <footer>
+        <span class="ufc-name">Universidade Federal do Ceará</span>
+        <a href="https://www.instagram.com/sorobanufc" target="_blank" class="ufc-link">Projeto de Extensão &bull; Licenciatura em Matemática</a>
+      </footer>
+    </div>
+
+    <!-- 2. SUB-MENU MODOS -->
+    <div id="modeSelectView" class="view">
+      <div class="view-top-bar"><div class="view-top-title" id="modeMenuTitle">Regra</div><div class="nav-actions"><button class="btn btn-secondary" style="height:34px; padding:0 12px; font-size:0.75rem;" onclick="showHome()">🏠 Início</button></div></div>
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+        <div class="card" onclick="openTutorial()"><div class="title" style="font-size:1.4rem;">Tutorial Detalhado</div><div class="desc">Aprenda o algoritmo com exemplos claros.</div></div>
+        <div class="card" onclick="openDigitSelect('treino')"><div class="title" style="font-size:1.4rem;">Modo Treino Livre</div><div class="desc">Treine sem limite de tempo.</div></div>
+        <div class="card" onclick="openDigitSelect('timer')"><div class="title" style="font-size:1.4rem;">Contra o Relógio</div><div class="desc">Desafio rápido: 5 contas no menor tempo!</div></div>
+      </div>
+    </div>
+
+    <!-- 3. TUTORIAL -->
+    <div id="tutorialView" class="view">
+      <div class="view-top-bar">
+        <div class="view-top-title" id="tutorialTitle">Tutorial</div>
+        <div class="nav-actions"><button class="btn btn-secondary" style="height:34px; padding:0 10px; font-size:0.75rem;" onclick="showHome()">🏠</button><button class="btn btn-secondary" style="height:34px; padding:0 10px; font-size:0.75rem;" onclick="openModeMenu(currentMultiplier, currentRuleText)">Voltar</button></div>
+      </div>
+      <div class="tutorial-content" id="tutorialContent"></div>
+      <button class="btn btn-gold" onclick="openDigitSelect('treino')">Ir para o Treino</button>
+    </div>
+
+    <!-- 4. DIGITOS -->
+    <div id="digitSelectView" class="view">
+      <div class="view-top-bar">
+        <div class="view-top-title" id="digitSelectTitle">Dígitos</div>
+        <div class="nav-actions"><button class="btn btn-secondary" style="height:34px; padding:0 10px; font-size:0.75rem;" onclick="showHome()">🏠</button><button class="btn btn-secondary" style="height:34px; padding:0 10px; font-size:0.75rem;" onclick="openModeMenu(currentMultiplier, currentRuleText)">Voltar</button></div>
+      </div>
+      <p class="subtitle-ufc" style="text-align: center;" id="digitSelectSub">Selecione o tamanho:</p>
+      <div class="grid">
+        <div class="card" onclick="startPracticeWithDigits(2)"><div class="title">2 Dígitos</div><div class="desc">Ex: 47 &times; N</div></div>
+        <div class="card" onclick="startPracticeWithDigits(3)"><div class="title">3 Dígitos</div><div class="desc">Ex: 545 &times; N</div></div>
+        <div class="card" onclick="startPracticeWithDigits(4)"><div class="title">4 Dígitos</div><div class="desc">Ex: 3.284 &times; N</div></div>
+        <div class="card" onclick="startPracticeWithDigits(5)"><div class="title">5 Dígitos</div><div class="desc">Ex: 74.192 &times; N</div></div>
+      </div>
+    </div>
+
+    <!-- 5. PRÁTICA -->
+    <div id="practiceView" class="view">
+      <div class="view-top-bar" style="border-bottom:none; padding-bottom:0;">
+        <div class="view-top-title" style="font-size:1.15rem;" id="practiceHeaderTitle">Prática</div>
+        <div class="nav-actions"><button class="btn btn-secondary" style="height:32px; padding:0 10px; font-size:0.72rem;" onclick="showHome()">🏠</button><button class="btn btn-secondary" style="height:32px; padding:0 10px; font-size:0.72rem;" onclick="openDigitSelect(currentMode)">Dígitos</button></div>
+      </div>
+
+      <div class="status-bar" id="statusBar" style="display:none;"><span id="progressIndicator">Questão 1 de 5</span><span id="timerDisplay">Tempo: 0.0s</span></div>
+
+      <div class="input-mode-selector" style="margin-top:0;">
+        <button class="input-mode-btn active" id="btnModeKeyboard" onclick="setInputMode('keyboard')">⌨️ Digitar</button>
+        <button class="input-mode-btn" id="btnModeAbacus" onclick="setInputMode('abacus')">🧮 Ábaco</button>
+      </div>
+
+      <div class="rule-card">
+        <div class="rule-title" id="ruleHeader">Regra</div>
+        <div class="rule-text" id="ruleDescription"></div>
+        <div class="rule-zero-tip"><strong>Dica:</strong> Imagine sempre zeros à frente do número.</div>
+      </div>
+
+      <div class="exercise-box">
+        <div class="expression" id="problemDisplay"></div>
+        
+        <!-- TECLADO -->
+        <div class="digit-blocks-container" id="keyboardInputSection">
+          <div class="digit-blocks-row" id="digitBlocksRow"></div>
+        </div>
+
+        <!-- ÁBACO OTIMIZADO -->
+        <div class="abacus-container" id="abacusSection">
+          <div class="abacus-frame" id="sorobanFrame"></div>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+      </div>
+
+      <div style="display: flex; gap: 10px;"><button class="btn btn-secondary" style="flex: 1;" onclick="showHome()">Menu Inicial</button><button class="btn btn-gold" id="nextQuestionBtn" style="flex: 1;" onclick="generateQuestion()">Pular / Nova Conta</button></div>
+    </div>
+
+    <!-- 6. RESULTADOS -->
+    <div id="timeTrialResultView" class="view">
+      <div class="view-top-bar"><div class="view-top-title">Fim</div><div class="nav-actions"><button class="btn btn-secondary" style="height:34px; padding:0 12px; font-size:0.75rem;" onclick="showHome()">🏠 Início</button></div></div>
+      <div class="result-card">
+        <div class="result-title">Concluído!</div>
+        <div class="result-stats" id="timeTrialSummary"></div>
+      </div>
+      <div style="display: flex; gap: 10px;"><button class="btn btn-secondary" style="flex: 1;" onclick="showHome()">Menu Inicial</button><button class="btn btn-gold" style="flex: 1;" onclick="startPracticeWithDigits(selectedDigits)">Repetir</button></div>
+    </div>
+
+  </div>
+
+  <script>
+    // ESTADO GLOBAL CACHEADO
+    let currentMultiplier = 11, currentQuestionMultiplier = 11;
+    let currentRuleText = "", currentNumber = 0;
+    let isMixed = false, isGeneral = false, currentMode = 'treino', selectedDigits = 3, inputMode = 'keyboard';
+    let isWaiting = false; // Bloqueio para a transição automática
+    
+    // TIMER
+    let timerQuestionsCount = 0, timerCorrectAnswers = 0, timerStartTime = 0, timerInterval = null;
+    const multipliersList = [11, 12, 6, 7, 5, 9, 8, 4, 3, 2];
+
+    // ESTADO DO ÁBACO
+    const TOTAL_COLUMNS = 9;
+    let abacusState = Array.from({ length: TOTAL_COLUMNS }, () => ({ upper: 0, lower: 0 }));
+    const abacusDOM = []; // Cache dos elementos do ábaco para O(1) update
+
+    // DADOS
+    const tutorialsData = {
+      general: { title: "Método Geral", steps: ["<strong>1. Princípio dos Pares:</strong> Calcule somando U(produto) com D(produto vizinho).", "<strong>2. Exemplo: 73 &times; 54</strong><br>U: U(3&times;4) = 2 (vai 1)<br>D: U(7&times;4) + D(3&times;4) + U(3&times;5) + 1 = 15 (vai 1)"] },
+      11: { title: "Regra do 11", steps: ["<strong>1. Zero à esquerda:</strong> Imagine 0637.", "<strong>2. Meio:</strong> Some dígito ao vizinho da direita.", "<strong>Exemplo: 637 &times; 11</strong><br>7+0=7, 3+7=0(vai 1), 6+3+1=0(vai 1), 0+6+1=7 -> 7.007"] },
+      12: { title: "Regra do 12", steps: ["<strong>1. Dobro:</strong> Dobre o dígito e some o vizinho.", "<strong>Exemplo: 413 &times; 12</strong><br>(2&times;3)+0=6, (2&times;1)+3=5, (2&times;4)+1=9, (2&times;0)+4=4 -> 4.956"] },
+      6:  { title: "Regra do 6", steps: ["<strong>1. Lógica:</strong> Dígito + metade do vizinho (+5 se ímpar).", "<strong>Exemplo: 624 &times; 6</strong><br>4+0=4, 2+2=4, 6+1=7, 0+3=3 -> 3.744"] },
+      7:  { title: "Regra do 7", steps: ["<strong>1. Lógica:</strong> Dobro do dígito + metade vizinho (+5 se ímpar)."] },
+      5:  { title: "Regra do 5", steps: ["<strong>1. Lógica:</strong> Apenas metade do vizinho (+5 se ímpar)."] },
+      9:  { title: "Regra do 9", steps: ["<strong>1. Lógica:</strong> Subtraia a unidade de 10, os outros de 9 + vizinho. O último digito à esquerda subtrai 1."] },
+      8:  { title: "Regra do 8", steps: ["<strong>1. Lógica:</strong> Subtraia de 9/10, dobre e some vizinho. O primeiro diminui 2."] },
+      4:  { title: "Regra do 4", steps: ["<strong>1. Lógica:</strong> Subtraia de 9/10 + metade do vizinho (+5 se ímpar). Primeiro metade - 1."] },
+      3:  { title: "Regra do 3", steps: ["<strong>1. Lógica:</strong> Subtraia 9/10, dobre + metade vizinho (+5 ímpar). Primeiro metade - 2."] },
+      2:  { title: "Regra do 2", steps: ["<strong>1. Lógica:</strong> Dobre cada dígito."] },
+      mixed: { title: "Modo Misto", steps: ["Uma regra aleatória por rodada!"] }
+    };
+
+    const DOM = {
+      feedback: document.getElementById('feedback'),
+      digitRow: document.getElementById('digitBlocksRow')
+    };
+
+    // UI NAVEGAÇÃO
+    function openHistoryModal() { document.getElementById('historyModal').classList.add('active'); }
+    function closeHistoryModal() { document.getElementById('historyModal').classList.remove('active'); }
+    function hideAllViews() { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); }
+    function showHome() { clearInterval(timerInterval); hideAllViews(); document.getElementById('homeView').classList.add('active'); }
+
+    function openModeMenu(multiplier, ruleDesc) {
+      clearInterval(timerInterval);
+      isMixed = (multiplier === 'mixed');
+      isGeneral = (multiplier === 'general');
+      currentMultiplier = multiplier;
+      currentRuleText = ruleDesc;
+      
+      const title = isGeneral ? 'Método Geral' : (isMixed ? 'Modo Misto' : `Regra do &times; ${multiplier}`);
+      document.getElementById('modeMenuTitle').innerHTML = title;
+      hideAllViews(); document.getElementById('modeSelectView').classList.add('active');
+    }
+
+    function openTutorial() {
+      const data = tutorialsData[currentMultiplier] || tutorialsData[11];
+      document.getElementById('tutorialTitle').innerHTML = data.title;
+      document.getElementById('tutorialContent').innerHTML = data.steps.map(s => `<div class="tutorial-step">${s}</div>`).join('');
+      hideAllViews(); document.getElementById('tutorialView').classList.add('active');
+    }
+
+    function openDigitSelect(mode) {
+      currentMode = mode;
+      document.getElementById('digitSelectTitle').textContent = mode === 'timer' ? 'Contra o Relógio' : 'Modo Treino';
+      document.getElementById('digitSelectSub').textContent = mode === 'timer' ? 'Dígitos p/ o desafio:' : 'Dígitos p/ treino:';
+      hideAllViews(); document.getElementById('digitSelectView').classList.add('active');
+    }
+
+    function startPracticeWithDigits(digits) {
+      selectedDigits = digits;
+      hideAllViews(); document.getElementById('practiceView').classList.add('active');
+      document.getElementById('practiceHeaderTitle').innerHTML = isGeneral ? 'Método Geral' : (isMixed ? 'Modo Misto' : `Regra do &times; ${currentMultiplier}`);
+      
+      setInputMode(inputMode);
+      
+      const nextBtn = document.getElementById('nextQuestionBtn');
+      const statusBar = document.getElementById('statusBar');
+
+      if (currentMode === 'timer') {
+        statusBar.style.display = 'flex'; nextBtn.style.display = 'none';
+        timerQuestionsCount = 0; timerCorrectAnswers = 0; timerStartTime = Date.now();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => { document.getElementById('timerDisplay').textContent = `Tempo: ${((Date.now()-timerStartTime)/1000).toFixed(1)}s`; }, 100);
+      } else {
+        statusBar.style.display = 'none'; nextBtn.style.display = 'inline-flex';
+      }
+      generateQuestion();
+    }
+
+    // LÓGICA DO JOGO E VERIFICAÇÃO AUTOMÁTICA
+    function generateQuestion() {
+      isWaiting = false;
+      let activeM = isMixed ? multipliersList[Math.floor(Math.random()*multipliersList.length)] : currentMultiplier;
+      currentNumber = Math.floor(Math.random() * 9 * Math.pow(10, selectedDigits-1)) + Math.pow(10, selectedDigits-1);
+      
+      if (isGeneral) { activeM = Math.floor(Math.random() * 9 * Math.pow(10, Math.min(selectedDigits,3)-1)) + Math.pow(10, Math.min(selectedDigits,3)-1); }
+      currentQuestionMultiplier = activeM;
+
+      document.getElementById('ruleHeader').innerHTML = isGeneral ? 'Método Geral' : `Regra do &times; ${activeM}`;
+      document.getElementById('ruleDescription').textContent = isGeneral ? 'Pares produto-unidade e produto-dezena.' : (isMixed ? tutorialsData[activeM].title : currentRuleText);
+      document.getElementById('problemDisplay').innerHTML = `<span class="num">${currentNumber.toLocaleString('pt-BR')}</span><span class="op">&times;</span><span class="num">${activeM.toLocaleString('pt-BR')}</span>`;
+      
+      setupDigitBlocks((currentNumber * activeM).toString().length);
+      resetAbacus();
+
+      DOM.feedback.textContent = ''; DOM.feedback.className = 'feedback';
+      if (currentMode === 'timer') {
+        timerQuestionsCount++;
+        document.getElementById('progressIndicator').textContent = `Questão ${timerQuestionsCount} de 5`;
+      }
+    }
+
+    // Verificação Silenciosa
+    function verifyAnswer(explicit = false) {
+      if (isWaiting) return;
+      const val = inputMode === 'keyboard' ? getDigitBlocksValue() : getAbacusTotalValue();
+      const expected = currentNumber * currentQuestionMultiplier;
+
+      if (isNaN(val)) {
+        if(explicit) { DOM.feedback.textContent = 'Insira uma resposta!'; DOM.feedback.className = 'feedback incorrect'; }
+        return;
+      }
+
+      if (val === expected) {
+        isWaiting = true;
+        DOM.feedback.textContent = '✓ Correto!'; DOM.feedback.className = 'feedback correct';
+        if (currentMode === 'timer') timerCorrectAnswers++;
+        document.querySelectorAll('.digit-box-input').forEach(inp => inp.disabled = true);
+        
+        setTimeout(() => {
+          isWaiting = false;
+          if (currentMode === 'timer' && timerQuestionsCount >= 5) finishTimeTrial();
+          else generateQuestion();
+        }, 800);
+      } else if (explicit) {
+        DOM.feedback.textContent = `✗ Incorreto. Era ${expected.toLocaleString('pt-BR')}`; DOM.feedback.className = 'feedback incorrect';
+      }
+    }
+
+    function finishTimeTrial() {
+      clearInterval(timerInterval);
+      const totalTime = ((Date.now() - timerStartTime)/1000).toFixed(1);
+      hideAllViews(); document.getElementById('timeTrialResultView').classList.add('active');
+      document.getElementById('timeTrialSummary').innerHTML = `<strong>Tempo Total:</strong> ${totalTime}s<br><strong>Acertos:</strong> ${timerCorrectAnswers}/5<br><strong>Média:</strong> ${(totalTime/5).toFixed(1)}s`;
+    }
+
+    // INPUT TECLADO
+    function setupDigitBlocks(len) {
+      DOM.digitRow.innerHTML = '';
+      const numBlocks = Math.max(len + 1, 3);
+      const labels = ["U", "D", "C", "UM", "DM", "CM", "UMi", "DMi"];
+
+      for (let i=0; i<numBlocks; i++) {
+        const d = document.createElement('div'); d.className = 'digit-box-unit';
+        d.innerHTML = `<label>${labels[i]||`10<sup>${i}</sup>`}</label><input type="text" inputmode="numeric" class="digit-box-input" maxlength="1" data-index="${i}">`;
+        
+        const inp = d.lastChild;
+        inp.oninput = (e) => {
+          if (!/^[0-9]$/.test(e.target.value)) { e.target.value=''; verifyAnswer(false); return; }
+          if (i < numBlocks-1) document.querySelector(`input[data-index="${i+1}"]`)?.focus();
+          verifyAnswer(false); 
+        };
+        inp.onkeydown = (e) => {
+          if (e.key === 'Backspace' && !e.target.value && i > 0) {
+            const p = document.querySelector(`input[data-index="${i-1}"]`);
+            if(p){ p.focus(); p.value=''; }
+          } else if (e.key === 'Enter') {
+            verifyAnswer(true); 
+          }
+        };
+        DOM.digitRow.appendChild(d);
+      }
+      setTimeout(() => document.querySelector('input[data-index="0"]')?.focus(), 100);
+    }
+
+    function getDigitBlocksValue() {
+      const inputs = document.querySelectorAll('.digit-box-input');
+      let str = ''; for (let i=inputs.length-1; i>=0; i--) if (inputs[i].value !== '') str += inputs[i].value;
+      return parseInt(str, 10);
+    }
+
+    function setInputMode(mode) {
+      inputMode = mode;
+      document.getElementById('btnModeKeyboard').classList.toggle('active', mode==='keyboard');
+      document.getElementById('btnModeAbacus').classList.toggle('active', mode==='abacus');
+      document.getElementById('keyboardInputSection').style.display = mode==='keyboard' ? 'flex' : 'none';
+      document.getElementById('abacusSection').style.display = mode==='abacus' ? 'flex' : 'none';
+      if(mode==='keyboard') document.querySelector('input[data-index="0"]')?.focus();
+      verifyAnswer(false); 
+    }
+
+    // ÁBACO: CRIAÇÃO DO DOM E LÓGICA DE INTERAÇÃO FLUIDA
+    function initAbacusDOM() {
+      const frame = document.getElementById('sorobanFrame');
+      frame.innerHTML = '<button class="abacus-reset-btn" onclick="resetAbacus()">⟲</button><div class="abacus-beam-bar"></div>';
+      
+      for (let col = 0; col < TOTAL_COLUMNS; col++) {
+        const colEl = document.createElement('div'); colEl.className = 'abacus-column';
+        colEl.innerHTML = `<div class="abacus-rod-line"></div>${[2,5,8].includes(col)?'<div class="abacus-dot"></div>':''}`;
+        
+        // Superior
+        const upDeck = document.createElement('div'); upDeck.className = 'abacus-deck-upper';
+        const upBead = document.createElement('div'); upBead.className = 'soroban-bead';
+        setupBeadInteraction(upBead, col, 'up', 0);
+        upDeck.appendChild(upBead); colEl.appendChild(upDeck);
+
+        // Inferior
+        const lowDeck = document.createElement('div'); lowDeck.className = 'abacus-deck-lower';
+        const lowBeads = [];
+        for (let i=1; i<=4; i++) {
+          const b = document.createElement('div'); b.className = 'soroban-bead';
+          setupBeadInteraction(b, col, 'low', i);
+          lowDeck.appendChild(b); lowBeads.push(b);
+        }
+        colEl.appendChild(lowDeck);
+        
+        // Número da Base
+        const valDiv = document.createElement('div'); valDiv.className = 'abacus-col-val'; valDiv.textContent = '0';
+        colEl.appendChild(valDiv);
+
+        frame.appendChild(colEl);
+        abacusDOM.push({ upper: upBead, lower: lowBeads, val: valDiv });
+      }
+    }
+
+    function setupBeadInteraction(el, col, deck, idx) {
+      let sy = 0, isDrag = false, moved = false;
+      
+      el.onpointerdown = (e) => { 
+        e.preventDefault(); // Evita scroll do mobile
+        sy = e.clientY || (e.touches && e.touches[0].clientY) || 0; 
+        isDrag = true; moved = false; 
+        el.classList.add('dragging'); 
+        if(e.pointerId) el.setPointerCapture(e.pointerId); 
+      };
+      
+      el.onpointermove = (e) => { 
+        if(isDrag && Math.abs((e.clientY || (e.touches && e.touches[0].clientY) || 0) - sy) > 6) {
+          moved = true; 
+        }
+      };
+      
+      const end = (e) => {
+        if(!isDrag) return; 
+        isDrag = false; el.classList.remove('dragging');
+        if(e.pointerId) el.releasePointerCapture(e.pointerId);
+
+        const dy = (e.clientY || (e.changedTouches && e.changedTouches[0].clientY) || 0) - sy;
+        
+        if (moved && Math.abs(dy) > 8) {
+          if (deck === 'up') abacusState[col].upper = dy > 0 ? 1 : 0;
+          else abacusState[col].lower = dy < 0 ? idx : idx - 1;
+        } else {
+          // Lógica perfeita de toque (clicar na peça inferior correta desce todas abaixo dela simultaneamente)
+          if (deck === 'up') abacusState[col].upper ^= 1;
+          else abacusState[col].lower = abacusState[col].lower >= idx ? idx - 1 : idx;
+        }
+        updateAbacusUI();
+      };
+      
+      el.onpointerup = end; el.onpointercancel = end;
+    }
+
+    function updateAbacusUI() {
+      for (let col = 0; col < TOTAL_COLUMNS; col++) {
+        const st = abacusState[col]; const dom = abacusDOM[col];
+        dom.upper.classList.toggle('active', st.upper === 1);
+        for (let i = 0; i < 4; i++) dom.lower[i].classList.toggle('active', st.lower >= i+1);
+        dom.val.textContent = (st.upper * 5) + st.lower; // Atualiza o rodapé com o valor da haste[cite: 1]
+      }
+      verifyAnswer(false); // Dispara auto-avaliação ao terminar o movimento
+    }
+
+    function getAbacusTotalValue() {
+      let total = 0;
+      for (let col = 0; col < TOTAL_COLUMNS; col++) total += ((abacusState[col].upper * 5) + abacusState[col].lower) * Math.pow(10, TOTAL_COLUMNS - 1 - col);
+      return total;
+    }
+
+    window.resetAbacus = function() {
+      for(let i=0; i<TOTAL_COLUMNS; i++) abacusState[i] = {upper:0, lower:0};
+      updateAbacusUI();
+    };
+
+    window.addEventListener('DOMContentLoaded', initAbacusDOM);
+  </script>
+</body>
+</html>
